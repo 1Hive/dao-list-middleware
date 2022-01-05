@@ -1,6 +1,5 @@
 import fetch from "node-fetch";
 import axios from "axios";
-import res from "express/lib/response";
 
 const GITHUB_API_TOKEN = process.env.GITHUB_API_TOKEN;
 
