@@ -1,13 +1,14 @@
 import fetch from "node-fetch";
-import axios from "axios";
+import axios from "axios"; //TODO We should remove axios and keep node-fetch if really dont need and keep pass on the tests, or migrate all to axios
 
 const GITHUB_API_TOKEN = process.env.GITHUB_API_TOKEN;
 
-export const ASSETS_FOLDER_BASE =
-  "https://raw.githubusercontent.com/kamikazebr/dao-list/master/assets";
+const OWNER_REPO = process.env.OWNER_REPO ?? "kamikazebr"; //1Hive
+const REPO = "dao-list";
 
-const ENDPOINT_BASE = "https://api.github.com/repos/kamikazebr/dao-list";
-// const ENDPOINT_BASE = "https://api.github.com/repos/1Hive/dao-list";
+export const ASSETS_FOLDER_BASE = `https://raw.githubusercontent.com/${OWNER_REPO}/${REPO}/master/assets`;
+
+const ENDPOINT_BASE = `https://api.github.com/repos/${OWNER_REPO}/${REPO}`;
 
 export const fetchLatestCommitSha = async () => {
   const endpoint = `${ENDPOINT_BASE}/git/refs/heads/master`;
@@ -29,8 +30,6 @@ export const fetchLatestCommitSha = async () => {
 };
 
 export const fetchBaseTreeSha = async (commitSha) => {
-  console.log(GITHUB_API_TOKEN);
-
   const endpoint = `${ENDPOINT_BASE}/git/commits/${commitSha}`;
   try {
     const result = await fetch(endpoint, {
@@ -165,26 +164,6 @@ const changeHeadsCommitSha = async (commitSha) => {
   }
 };
 
-export const getLatestCommitRoute = async (req, res) => {
-  const retu = await fetchLatestCommitSha();
-  console.log(retu);
-  return res.send(retu);
-};
-
-export const postApplyCommitRoute = async (req, res) => {
-  const result = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      Authorization: `token ${GITHUB_API_TOKEN}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(bodyData),
-  });
-  const data = await result.json();
-
-  return { data: data.sha, error: !result.ok };
-};
-
 export const postCreateTreeRoute = async (req, res) => {
   try {
     let {
@@ -210,13 +189,67 @@ export const postCreateTreeRoute = async (req, res) => {
 
     const result = await changeHeadsCommitSha(commitSha);
     // console.log(result);
-    // res.send({ baseTreSha, latestCommitSha });
-    return {
+    const retObj = {
       data: { result, commitSha, newTreeSha, baseTreSha, latestCommitSha },
       error: false,
     };
+    res.send(retObj);
+
+    return retObj;
   } catch (error) {
     console.error(error);
     return { data: { error }, error: true };
+  }
+};
+
+export const putCreateAssets = async (req, res) => {
+  try {
+    let { pathFileName, commitMessage, contentBase64, folderName } = req.body;
+
+    const result = await createFileContent(
+      folderName,
+      pathFileName,
+      contentBase64,
+      commitMessage
+    );
+
+    const retObj = {
+      data: result,
+      error: result.error,
+    };
+    res.send(retObj);
+
+    return retObj;
+  } catch (error) {
+    console.error(error);
+    return { data: { error }, error: true };
+  }
+};
+
+const createFileContent = async (folderName, fileName, base64, commitMsg) => {
+  const endpoint = `${ENDPOINT_BASE}/contents/assets/${folderName}/${fileName}`;
+
+  const bodyData = {
+    owner: OWNER_REPO,
+    repo: REPO,
+    path: fileName,
+    message: commitMsg,
+    content: base64,
+  };
+  try {
+    const result = await fetch(endpoint, {
+      method: "PUT",
+      headers: {
+        Authorization: `token ${GITHUB_API_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(bodyData),
+    });
+    const data = await result.json();
+
+    return { data: data, error: !result.ok };
+  } catch (err) {
+    console.error(`Error requesting createFileContent`, err);
+    return { error: true };
   }
 };

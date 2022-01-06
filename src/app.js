@@ -11,7 +11,7 @@ app.get("/", (req, res) => {
   res.send("1.0.0");
 });
 
-app.get("/v1/dao", catchAsync(daolist.getLatestCommitRoute));
+app.put("/v1/daoAssets", catchAsync(daolist.putCreateAssets));
 app.post("/v1/dao", catchAsync(daolist.postCreateTreeRoute));
 
 export default app;

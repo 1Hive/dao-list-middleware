@@ -25,16 +25,57 @@ describe("Test the root path", () => {
 });
 
 describe("Test the v1 dao endpoint", () => {
-  it("should response the GET method", async () => {
+  it("should response with 404 not found the GET method", async () => {
     return request(app)
       .get("/v1/dao")
+      .then((response) => {
+        expect(response.statusCode).toBe(404);
+      });
+  }, 5000);
+
+  it("should response the POST method", async () => {
+    return request(app)
+      .post("/v1/dao")
+      .set("Content-type", "application/json")
+      .send({
+        baseTreSha: "782c4fc92c1f7f113fe4cb5304f866c34839df6c",
+        newContent: "{}",
+        networkName: "rinkeby",
+        latestCommitSha: "2a1dd57555f8f85c5eae9e409f0d03dc9e8d4202",
+        daoMetadataName: "dao-list-middleware-Test",
+      })
       .then((response) => {
         expect(response.statusCode).toBe(200);
       });
   }, 5000);
 });
 
-describe("Test the v1 dao helper funcs", () => {
+describe("Test the v1 dao Assets endpoint", () => {
+  it("should not response the GET method", async () => {
+    return request(app)
+      .get("/v1/daoAssets")
+      .then((response) => {
+        expect(response.statusCode).not.toBe(200);
+      });
+  }, 5000);
+
+  it("should response the PUT method", async () => {
+    return request(app)
+      .put("/v1/daoAssets")
+      .set("Content-type", "application/json")
+      .send({
+        folderName: "test",
+        pathFileName: "testfile",
+        contentBase64: "b2kK",
+        commitMessage: "A file test",
+      })
+      .then((response) => {
+        expect(response.statusCode).toBe(200);
+      });
+  }, 5000);
+});
+
+xdescribe("Test the v1 dao helper funcs", () => {
   xit(
     "should response data and error false - from method fetchLatestCommitSha",
     (done) => {
@@ -65,53 +106,53 @@ describe("Test the v1 dao helper funcs", () => {
     },
     TIMEOUT
   );
+
+  xit(
+    "should response data and error false - from method fetchFileContent",
+    async () => {
+      // expect.assertions(2);
+      const ret = await fetchFileContent("rinkeby");
+      // console.log(JSON.stringify(ret, null, 4));
+      console.log(ret);
+
+      expect(ret).toHaveProperty("data");
+      expect(ret).toHaveProperty("error", false);
+    },
+    TIMEOUT
+  );
+
+  xit(
+    "should response data with message error and error true - from method fetchFileContent",
+    async () => {
+      // expect.assertions(2);
+      const ret = await fetchFileContent("invalid_name_rinkeby");
+      console.log(JSON.stringify(ret, null, 4));
+      expect(ret).toHaveProperty("data");
+      expect(ret).toHaveProperty("error", true);
+    },
+    TIMEOUT
+  );
+
+  xit(
+    "should create some Tree - from method createTree",
+    async () => {
+      // expect.assertions(2);
+      let config = {
+        baseTreeSha,
+        fileContent,
+        networkName: "invalid_name_rinkeby",
+      };
+
+      const ret = await createTree(config);
+      console.log(JSON.stringify(ret, null, 4));
+      expect(ret).toHaveProperty("data");
+      expect(ret).toHaveProperty("error", true);
+    },
+    TIMEOUT
+  );
 });
 
-xit(
-  "should response data and error false - from method fetchFileContent",
-  async () => {
-    // expect.assertions(2);
-    const ret = await fetchFileContent("rinkeby");
-    // console.log(JSON.stringify(ret, null, 4));
-    console.log(ret);
-
-    expect(ret).toHaveProperty("data");
-    expect(ret).toHaveProperty("error", false);
-  },
-  TIMEOUT
-);
-
-xit(
-  "should response data with message error and error true - from method fetchFileContent",
-  async () => {
-    // expect.assertions(2);
-    const ret = await fetchFileContent("invalid_name_rinkeby");
-    console.log(JSON.stringify(ret, null, 4));
-    expect(ret).toHaveProperty("data");
-    expect(ret).toHaveProperty("error", true);
-  },
-  TIMEOUT
-);
-
-xit(
-  "should create some Tree - from method createTree",
-  async () => {
-    // expect.assertions(2);
-    let config = {
-      baseTreeSha,
-      fileContent,
-      networkName: "invalid_name_rinkeby",
-    };
-
-    const ret = await createTree(config);
-    console.log(JSON.stringify(ret, null, 4));
-    expect(ret).toHaveProperty("data");
-    expect(ret).toHaveProperty("error", true);
-  },
-  TIMEOUT
-);
-
-describe("Test all functions together", () => {
+xdescribe("Test all functions together", () => {
   it(
     "should change rinkeby.json on github - from method postCreateTreeRoute",
     async () => {
