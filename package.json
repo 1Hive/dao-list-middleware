@@ -20,6 +20,8 @@
   "author": "Felipe Novaes F Rocha (windholyghost@gmail.com)",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.24.0",
+    "cors": "^2.8.5",
     "express": "^4.17.2",
     "node-fetch": "^3.1.0"
   },

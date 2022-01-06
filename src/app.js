@@ -1,10 +1,13 @@
 import express from "express";
+import cors from "cors";
+
 const app = express();
 
 import { catchAsync } from "./utils/catchAsync.js";
 
 import * as daolist from "./routes/daolist.js";
 
+app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
