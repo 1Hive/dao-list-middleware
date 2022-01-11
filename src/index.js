@@ -6,5 +6,7 @@ process.on("unhandledRejection", (err) => {
 });
 
 app.listen(process.env.PORT, "0.0.0.0", () => {
-  console.log(`Example app listening at http://localhost:${process.env.PORT}`);
+  console.log(
+    `Dao-list service listening at http://localhost:${process.env.PORT}`
+  );
 });
