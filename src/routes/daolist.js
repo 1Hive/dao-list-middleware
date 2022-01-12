@@ -5,12 +5,15 @@ const GITHUB_API_TOKEN = process.env.GITHUB_API_TOKEN;
 const OWNER_REPO = process.env.OWNER_REPO ?? "kamikazebr"; //1Hive
 const REPO = "dao-list";
 
-export const ASSETS_FOLDER_BASE = `https://raw.githubusercontent.com/${OWNER_REPO}/${REPO}/master/assets`;
+// export const ASSETS_FOLDER_BASE = `https://raw.githubusercontent.com/${OWNER_REPO}/${REPO}/master/assets`;
 
-const ENDPOINT_BASE = `https://api.github.com/repos/${OWNER_REPO}/${REPO}`;
+const ENDPOINT_BASE = `https://api.github.com/repos`;
 
-export const fetchLatestCommitSha = async () => {
-  const endpoint = `${ENDPOINT_BASE}/git/refs/heads/master`;
+export const fetchLatestCommitSha = async (ownerRepo, repo = "dao-list") => {
+  if (!ownerRepo || (ownerRepo && ownerRepo.trim() === "")) {
+    throw new Error("ownerRepo its not defined");
+  }
+  const endpoint = `${ENDPOINT_BASE}/${ownerRepo}/${repo}/git/refs/heads/master`;
   try {
     const result = await fetch(endpoint, {
       method: "GET",
@@ -28,8 +31,15 @@ export const fetchLatestCommitSha = async () => {
   }
 };
 
-export const fetchBaseTreeSha = async (commitSha) => {
-  const endpoint = `${ENDPOINT_BASE}/git/commits/${commitSha}`;
+export const fetchBaseTreeSha = async (
+  commitSha,
+  ownerRepo,
+  repo = "dao-list"
+) => {
+  if (!ownerRepo || (ownerRepo && ownerRepo.trim() === "")) {
+    throw new Error("ownerRepo its not defined");
+  }
+  const endpoint = `${ENDPOINT_BASE}/${ownerRepo}/${repo}/git/commits/${commitSha}`;
   try {
     const result = await fetch(endpoint, {
       method: "GET",
@@ -47,9 +57,16 @@ export const fetchBaseTreeSha = async (commitSha) => {
   }
 };
 
-export const fetchFileContent = async (networkName) => {
+export const fetchFileContent = async (
+  networkName,
+  ownerRepo,
+  repo = "dao-list"
+) => {
+  if (!ownerRepo || (ownerRepo && ownerRepo.trim() === "")) {
+    throw new Error("ownerRepo its not defined");
+  }
   const network = networkName;
-  const endpoint = `${ENDPOINT_BASE}/contents/${network}.json`;
+  const endpoint = `${ENDPOINT_BASE}/${ownerRepo}/${repo}/contents/${network}.json`;
 
   try {
     const result = await fetch(endpoint, {
@@ -74,8 +91,17 @@ export const fetchFileContent = async (networkName) => {
   }
 };
 
-export const createTree = async ({ baseTreSha, fileContent, networkName }) => {
-  const endpoint = `${ENDPOINT_BASE}/git/trees`;
+export const createTree = async ({
+  baseTreSha,
+  fileContent,
+  networkName,
+  ownerRepo,
+  repo = "dao-list",
+}) => {
+  if (!ownerRepo || (ownerRepo && ownerRepo.trim() === "")) {
+    throw new Error("ownerRepo its not defined");
+  }
+  const endpoint = `${ENDPOINT_BASE}/${ownerRepo}/${repo}/git/trees`;
 
   if (!networkName) {
     throw new Error("networkName its not defined");
@@ -112,8 +138,17 @@ export const createTree = async ({ baseTreSha, fileContent, networkName }) => {
     throw err;
   }
 };
-const createCommit = async ({ latestCommitSha, newTreeSha, daoName }) => {
-  const endpoint = `${ENDPOINT_BASE}/git/commits`;
+const createCommit = async ({
+  latestCommitSha,
+  newTreeSha,
+  daoName,
+  ownerRepo,
+  repo = "dao-list",
+}) => {
+  if (!ownerRepo || (ownerRepo && ownerRepo.trim() === "")) {
+    throw new Error("ownerRepo its not defined");
+  }
+  const endpoint = `${ENDPOINT_BASE}/${ownerRepo}/${repo}/git/commits`;
   const bodyData = {
     parents: [latestCommitSha],
     tree: newTreeSha,
@@ -133,13 +168,19 @@ const createCommit = async ({ latestCommitSha, newTreeSha, daoName }) => {
     return { data: data.sha, error: !result.ok };
   } catch (err) {
     console.error(`Error creating commit`, err);
-    // return { error: true };
     throw err;
   }
 };
 
-const changeHeadsCommitSha = async (commitSha) => {
-  const endpoint = `${ENDPOINT_BASE}/git/refs/heads/master`;
+const changeHeadsCommitSha = async (
+  commitSha,
+  ownerRepo,
+  repo = "dao-list"
+) => {
+  if (!ownerRepo || (ownerRepo && ownerRepo.trim() === "")) {
+    throw new Error("ownerRepo its not defined");
+  }
+  const endpoint = `${ENDPOINT_BASE}/${ownerRepo}/${repo}/git/refs/heads/master`;
   const bodyData = {
     sha: commitSha,
   };
@@ -158,7 +199,6 @@ const changeHeadsCommitSha = async (commitSha) => {
     return { data: data, error: !result.ok };
   } catch (err) {
     console.error(`Error requesting tree sha`, err);
-    // return { error: true };
     throw err;
   }
 };
@@ -171,12 +211,16 @@ export const postCreateTreeRoute = async (req, res) => {
       networkName,
       latestCommitSha,
       daoMetadataName,
+      ownerRepo,
+      repo,
     } = req.body;
 
     const { data: newTreeSha } = await createTree({
       baseTreSha,
       fileContent: newContent,
       networkName,
+      ownerRepo,
+      repo,
     });
     // console.log(`newTreeSha:${newTreeSha}`);
 
@@ -184,9 +228,11 @@ export const postCreateTreeRoute = async (req, res) => {
       latestCommitSha,
       newTreeSha,
       daoName: daoMetadataName,
+      ownerRepo,
+      repo,
     });
 
-    const result = await changeHeadsCommitSha(commitSha);
+    const result = await changeHeadsCommitSha(commitSha, ownerRepo, repo);
     // console.log(result);
     const retObj = {
       data: { result, commitSha, newTreeSha, baseTreSha, latestCommitSha },
@@ -203,13 +249,22 @@ export const postCreateTreeRoute = async (req, res) => {
 
 export const putCreateAssets = async (req, res) => {
   try {
-    let { pathFileName, commitMessage, contentBase64, folderName } = req.body;
+    let {
+      pathFileName,
+      commitMessage,
+      contentBase64,
+      folderName,
+      ownerRepo,
+      repo,
+    } = req.body;
 
     const result = await createFileContent(
       folderName,
       pathFileName,
       contentBase64,
-      commitMessage
+      commitMessage,
+      ownerRepo,
+      repo
     );
 
     const retObj = {
@@ -225,8 +280,18 @@ export const putCreateAssets = async (req, res) => {
   }
 };
 
-const createFileContent = async (folderName, fileName, base64, commitMsg) => {
-  const endpoint = `${ENDPOINT_BASE}/contents/assets/${folderName}/${fileName}`;
+const createFileContent = async (
+  folderName,
+  fileName,
+  base64,
+  commitMsg,
+  ownerRepo,
+  repo = "dao-list"
+) => {
+  if (!ownerRepo || (ownerRepo && ownerRepo.trim() === "")) {
+    throw new Error("ownerRepo its not defined");
+  }
+  const endpoint = `${ENDPOINT_BASE}/${ownerRepo}/${repo}/contents/assets/${folderName}/${fileName}`;
 
   const bodyData = {
     owner: OWNER_REPO,
