@@ -1,5 +1,4 @@
 import fetch from "node-fetch";
-import axios from "axios"; //TODO We should remove axios and keep node-fetch if really dont need and keep pass on the tests, or migrate all to axios
 
 const GITHUB_API_TOKEN = process.env.GITHUB_API_TOKEN;
 

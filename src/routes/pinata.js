@@ -1,30 +1,26 @@
 import fetch from "node-fetch";
+import FormData from "form-data";
 
 const ENDPOINT = "https://api.pinata.cloud/pinning/pinFileToIPFS";
 const PINATA_API_TOKEN = process.env.PINATA_API_TOKEN;
 
 export const postPinFileToIPFS = async (req, res) => {
   try {
-    console.log(req.files);
+    let retObj = {};
     if (req.busboy) {
-      req.busboy.on("file", (name, file, info) => {
-        // ...
-        console.log(file);
+      req.busboy.on("file", async (name, file, info) => {
+        const result = await uploadToPinata(file, info);
+        console.log(result);
         console.log(name);
         console.log(info);
+        retObj = {
+          data: result,
+          error: result.error,
+        };
+        res.send(retObj);
       });
       req.pipe(req.busboy);
     }
-    // let [file] = req.files;
-
-    // const result = await uploadToPinata(file);
-    const result = false;
-
-    const retObj = {
-      data: result,
-      error: result.error,
-    };
-    res.send(retObj);
 
     return retObj;
   } catch (error) {
@@ -33,10 +29,14 @@ export const postPinFileToIPFS = async (req, res) => {
   }
 };
 
-export async function uploadToPinata(file) {
+export async function uploadToPinata(file, info) {
   try {
     const formData = new FormData();
-    formData.append("file", file);
+
+    formData.append("file", file, {
+      contentType: info.mimeType,
+      filename: info.filename,
+    });
 
     const result = await fetch(ENDPOINT, {
       // Your POST endpoint
