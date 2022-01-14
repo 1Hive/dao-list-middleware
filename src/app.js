@@ -10,6 +10,12 @@ import * as daolistRoutes from "./routes/daolist.js";
 import * as pinataRoutes from "./routes/pinata.js";
 
 app.use(cors());
+app.use(
+  express.urlencoded({
+    extended: true,
+    limit: "5mb",
+  })
+);
 app.use(express.json());
 app.use(busboy());
 
