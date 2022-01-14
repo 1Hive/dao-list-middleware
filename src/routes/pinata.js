@@ -14,8 +14,7 @@ export const postPinFileToIPFS = async (req, res) => {
         console.log(name);
         console.log(info);
         retObj = {
-          data: result,
-          error: result.error,
+          ...result,
         };
         res.send(retObj);
       });
