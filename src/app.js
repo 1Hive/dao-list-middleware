@@ -16,7 +16,7 @@ app.use(
     limit: "5mb",
   })
 );
-app.use(express.json());
+app.use(express.json({ limit: "5mb" }));
 app.use(busboy());
 
 app.get("/", (req, res) => {
