@@ -1,5 +1,5 @@
 import fetch from "node-fetch";
-
+import axios from "axios";
 const GITHUB_API_TOKEN = process.env.GITHUB_API_TOKEN;
 
 const OWNER_REPO = process.env.OWNER_REPO ?? "kamikazebr"; //1Hive

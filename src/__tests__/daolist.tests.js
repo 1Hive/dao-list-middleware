@@ -45,6 +45,8 @@ describe("Test the v1 dao endpoint", () => {
         networkName: "rinkeby",
         latestCommitSha: "2a1dd57555f8f85c5eae9e409f0d03dc9e8d4202",
         daoMetadataName: "dao-list-middleware-Test",
+        ownerRepo: OWNER_REPO,
+        repo: REPO,
       })
       .then((response) => {
         expect(response.statusCode).toBe(200);
@@ -70,6 +72,8 @@ describe("Test the v1 dao Assets endpoint", () => {
         pathFileName: "testfile",
         contentBase64: "b2kK",
         commitMessage: "A file test",
+        ownerRepo: OWNER_REPO,
+        repo: REPO,
       })
       .then((response) => {
         expect(response.statusCode).toBe(200);
@@ -162,7 +166,7 @@ xdescribe("Test the v1 dao helper funcs", () => {
   );
 });
 
-xdescribe("Test all functions together", () => {
+describe("Test all functions together", () => {
   it(
     "should change rinkeby.json on github - from method postCreateTreeRoute",
     async () => {
@@ -228,6 +232,22 @@ xdescribe("Test all functions together", () => {
     },
     TIMEOUT
   );
+});
+
+describe("Test Pinata Upload", () => {
+  it("should response the POST method", async () => {
+    return (
+      request(app)
+        .post("/v1/pinata/pinFileToIPFS")
+        // .set("Content-type", "application/json")
+        .attach("file", "./README.md")
+        .then((response) => {
+          // console.log(response.body);
+          expect(response.body).toHaveProperty("IpfsHash");
+          expect(response.statusCode).toBe(200);
+        })
+    );
+  }, 5000);
 });
 
 it.todo("test createTree method");

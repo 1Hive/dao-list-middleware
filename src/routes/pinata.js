@@ -13,10 +13,14 @@ export const postPinFileToIPFS = async (req, res) => {
         console.log(result);
         console.log(name);
         console.log(info);
-        retObj = {
-          ...result,
-        };
-        res.send(retObj);
+        if (result.error) {
+          retObj = result;
+        } else {
+          retObj = {
+            ...result.data,
+          };
+        }
+        res.status(result.status).send(retObj);
       });
       req.pipe(req.busboy);
     }
@@ -47,9 +51,9 @@ export async function uploadToPinata(file, info) {
     });
 
     const data = await result.json();
-    return { data, error: !result.ok };
+    return { data, error: !result.ok, status: result.status };
   } catch (error) {
     console.error(error);
-    return { error: true };
+    return { error: true, status: 404 };
   }
 }
