@@ -2,9 +2,6 @@ import fetch from "node-fetch";
 import axios from "axios";
 const GITHUB_API_TOKEN = process.env.GITHUB_API_TOKEN;
 
-const OWNER_REPO = process.env.OWNER_REPO ?? "kamikazebr"; //1Hive
-const REPO = "dao-list";
-
 const ENDPOINT_BASE = `https://api.github.com/repos`;
 
 export const fetchLatestCommitSha = async (ownerRepo, repo = "dao-list") => {
@@ -289,8 +286,8 @@ const createFileContent = async (
   const endpoint = `${ENDPOINT_BASE}/${ownerRepo}/${repo}/contents/assets/${folderName}/${fileName}`;
 
   const bodyData = {
-    owner: OWNER_REPO,
-    repo: REPO,
+    owner: ownerRepo,
+    repo,
     path: fileName,
     message: commitMsg,
     content: base64,
