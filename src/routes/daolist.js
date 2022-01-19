@@ -5,8 +5,6 @@ const GITHUB_API_TOKEN = process.env.GITHUB_API_TOKEN;
 const OWNER_REPO = process.env.OWNER_REPO ?? "kamikazebr"; //1Hive
 const REPO = "dao-list";
 
-// export const ASSETS_FOLDER_BASE = `https://raw.githubusercontent.com/${OWNER_REPO}/${REPO}/master/assets`;
-
 const ENDPOINT_BASE = `https://api.github.com/repos`;
 
 export const fetchLatestCommitSha = async (ownerRepo, repo = "dao-list") => {
@@ -134,7 +132,6 @@ export const createTree = async ({
     return { data: data.sha, error: !result.ok };
   } catch (err) {
     console.error(`Error createTree`, err);
-    // return { error: true };
     throw err;
   }
 };
@@ -222,7 +219,6 @@ export const postCreateTreeRoute = async (req, res) => {
       ownerRepo,
       repo,
     });
-    // console.log(`newTreeSha:${newTreeSha}`);
 
     const { data: commitSha } = await createCommit({
       latestCommitSha,
@@ -233,7 +229,6 @@ export const postCreateTreeRoute = async (req, res) => {
     });
 
     const result = await changeHeadsCommitSha(commitSha, ownerRepo, repo);
-    // console.log(result);
     const retObj = {
       data: { result, commitSha, newTreeSha, baseTreSha, latestCommitSha },
       error: false,
