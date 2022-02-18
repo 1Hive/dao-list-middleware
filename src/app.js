@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import busboy from "connect-busboy";
+import request from 'request';
 
 const app = express();
 
@@ -21,6 +22,12 @@ app.use(busboy());
 
 app.get("/", (req, res) => {
   res.send("1.0.0");
+});
+
+app.get("/cors/*", function (req, res) {
+  request(req.url.substring(6), {json: true}, (err) => {
+    if (err) { return console.log(err); }
+  }).pipe(res);
 });
 
 app.put("/v1/daoAssets", catchAsync(daolistRoutes.putCreateAssets));
